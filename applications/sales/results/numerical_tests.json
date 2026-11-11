@@ -1,0 +1,27 @@
+{
+  "passed": true,
+  "tests": [
+    {
+      "test": "Exact enumeration of 4096 basket states",
+      "max_low_order_moment": 6.938893903907228e-18,
+      "max_fourth_error": 2.7755575615628914e-17,
+      "min_probability": 0.00009765625
+    },
+    {
+      "test": "Cumulants versus direct centered calculation",
+      "max_error": 4.718447854656915e-16
+    },
+    {
+      "test": "Kikuchi symmetry and Frobenius multiplicity",
+      "dimension": 126,
+      "max_asymmetry": 0,
+      "fro_error": 1.2505552149377763e-12
+    },
+    {
+      "test": "Lanczos versus dense eigensolve",
+      "eigenvalue_error": 1.7763568394002505e-14,
+      "residual": 3.752538287404654e-12,
+      "steps": 60
+    }
+  ]
+}

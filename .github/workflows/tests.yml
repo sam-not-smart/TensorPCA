@@ -1,0 +1,28 @@
+name: Numerical checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Core tests
+        run: node --test tests/kikuchi.test.cjs
+      - name: Standalone tensor example
+        run: node examples/planted_tensor.cjs
+      - name: Sales numerical invariants
+        run: node applications/sales/test_numerics.cjs
+      - name: Reproduce the sales experiment
+        run: node applications/sales/run_experiment.cjs

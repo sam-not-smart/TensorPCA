@@ -1,0 +1,3 @@
+# Optional report/plot generation only. The experiment uses Node.js without npm packages.
+numpy>=2.0
+matplotlib>=3.8

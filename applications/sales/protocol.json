@@ -1,0 +1,18 @@
+{
+  "description": "Frozen before the first run; one distinct-index fourth-order planted basket direction.",
+  "n_items": 12,
+  "group": [0, 2, 4, 7, 9, 11],
+  "theta": 0.12,
+  "sample_sizes": [256, 1024, 4096, 8192],
+  "validation_samples": 8192,
+  "replicates": 24,
+  "seed": 20261109,
+  "levels": [2, 4],
+  "permutations": 199,
+  "items": ["Charcoal", "Oats", "Meat", "Milk", "Marinade", "Flour", "Pasta", "Paper plates", "Apples", "Firelighters", "Coffee", "Braai tongs"],
+  "primary_method": "TensorPCA l=4",
+  "primary_metric": "squared sign-invariant cosine with planted direction",
+  "secondary_metrics": ["top-six support recall", "exact support recovery", "independent-validation fourth-order contrast"],
+  "selection": "First seed is the displayed example. No parameter or seed selection using recovery outcomes. Ground truth is used only by the generator and evaluation.",
+  "scope": "Classical distinct-index Kikuchi implementation, not full repeated-index bosonic Hamiltonian or quantum hardware. Constructed benchmark, not retail realism or recommendation advantage."
+}

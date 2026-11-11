@@ -1,0 +1,169 @@
+# Sales: synthetic product-group recovery
+
+This application imports the shared algorithm from `../../src/kikuchi.cjs`.
+Its generator, binary-moment estimation, and evaluation remain in this directory.
+The original standalone download is preserved separately; this is its repository integration.
+
+This package contains the data, numerical code, results, and validation for the
+TensorPCA basket experiment run on 9 November 2026. The original temporary
+execution environment disconnected before files could be exported. On 11 November
+2026 the executed JavaScript was reconstructed from the conversation and the
+same experiment was rerun with the original seeds. See
+`results/reproduction_check.json` for comparison with the original reported means
+and permutation-test results. These are deterministically regenerated data, not
+retrieved copies of the lost temporary files.
+
+## Quick start
+
+The experiment requires Node.js and no npm packages. It was reproduced using
+Node.js v24.22.1. From this directory:
+
+```sh
+node test_numerics.cjs
+node run_experiment.cjs
+```
+
+The second command regenerates the datasets and results, then checks the 12
+original planted-data recovery means to absolute tolerance 1e-8 and both
+permutation p-values exactly. It writes only to this package's `data/` and
+`results/` directories. A complete run takes a few minutes, depending on the
+machine. `protocol.json` is the unchanged protocol saved before the first run.
+
+Optional plots and the human-readable report can be regenerated with Python:
+
+```sh
+python -m pip install numpy matplotlib
+python make_report.py
+```
+
+## Start with these files
+
+| File | Contents |
+|---|---|
+| `data/planted_train.csv` | 8,192 training baskets for the predetermined first planted seed |
+| `data/planted_validation.csv` | 8,192 independent validation baskets for that seed |
+| `data/null_train.csv` | 8,192 independent-product control baskets |
+| `data/null_validation.csv` | 8,192 separate control validation baskets |
+| `data/items.csv` | Product order, group membership, and planted direction |
+| `data/all_replicates_packed.json` | All 24 planted and 24 control replicates, with seeds and both splits |
+| `numerical_core.cjs` | Sales generator, binary moments, evaluation, and shared-core adapter |
+| `../../src/kikuchi.cjs` | Shared Kikuchi operator, eigensolvers, and recovery |
+| `run_experiment.cjs` | Complete reproduction and export driver |
+| `test_numerics.cjs` | Exact population checks and numerical cross-checks |
+| `results/trials.csv` | All 360 method evaluations |
+| `results/summary.csv` | Mean, standard deviation, minimum, maximum across seeds |
+| `results/results.json` | Results, first-seed directions, operator diagnostics, and permutation samples |
+| `results/REPORT.md` | Experiment description and results |
+| `results/recovery.png` | Recovery curve and first-seed product weights |
+
+CSV entries are **0 = absent, 1 = present**. Rows are independent synthetic
+baskets, not customer histories or time series. There are no customer IDs,
+prices, quantities, or real sales records. Column order is fixed by the header
+and `data/items.csv`.
+
+The packed JSON stores each basket as an integer between 0 and 4095. Item `j`
+is bit `j`, counted from the least significant bit:
+
+```python
+import json
+from pathlib import Path
+
+data = json.loads(Path("data/all_replicates_packed.json").read_text())
+replicate = data["replicates"][0]
+train = [[(code >> j) & 1 for j in range(12)]
+         for code in replicate["train"]]
+print(data["items"])
+print(replicate["condition"], replicate["train_seed"], train[0])
+```
+
+For the smaller training sizes, use the first 256, 1,024, or 4,096 rows of the
+corresponding 8,192-row training set. Validation rows are separate. The four
+sample sizes within a seed are nested; different replicate seeds are independent.
+The data file contains 786,432 baskets across all replicate/split combinations.
+
+## Exact construction
+
+Let `b` be a binary 12-item basket and `y = 2*b - 1`. The hidden set, using
+zero-based indices, is `G = {0,2,4,7,9,11}`. These are charcoal, meat, marinade,
+paper plates, firelighters, and braai tongs. Its unit direction has weight
+`1/sqrt(6)` on these six entries and zero elsewhere.
+
+We sample from
+
+\[
+P(y)=2^{-12}\left[1+\theta\sum_{S\subseteq G,\ |S|=4}
+\prod_{i\in S}y_i\right],\qquad \theta=0.12.
+\]
+
+The bracket is nonnegative: for a six-item group, the polynomial's minimum is
+-5 and maximum is 15. At theta=0.12 the bracket lies between 0.4 and 2.8.
+The null uses theta=0, making all 12 items independent Bernoulli(1/2).
+
+All products have purchase probability 1/2. All distinct first-, second-, and
+third-order signed moments are zero in both populations. Binary covariance is
+`I/4`, so ordinary population PCA has no preferred direction. For a distinct
+four-item set S, the fourth joint cumulant of y is theta if S is contained in G
+and zero otherwise. There are 15 signal quartets. Thus the distinct-index
+sector is the restriction of `4.32 * v^tensor4` to distinct indices.
+
+This is **not** a full repeated-index rank-one cumulant tensor. Repeated-index
+entries include each Bernoulli item's own kurtosis; those entries are excluded
+by the selected algorithm. This construction is a controlled higher-order test,
+with balanced, fairly dense baskets and parity-like dependencies. It is not a
+realistic generative model of retail behavior.
+
+## Algorithm and evaluation
+
+The training baskets are mapped to signed coordinates. Empirical centered
+fourth joint cumulants are calculated with all mean and covariance corrections.
+A Walsh-Hadamard transform of the basket histogram obtains raw moments exactly
+up to floating-point arithmetic; it does not use the planted group.
+
+For lift level ell=2 or 4, matrix rows and columns are ell-item subsets. An entry
+is `K[U,V] = C4[U symmetric_difference V]` if the symmetric difference has four
+items, and zero otherwise. Dimensions are 66 and 495, respectively. Six
+eigenpairs are selected by largest absolute eigenvalue. Each eigenvector is
+decoded through its one-particle matrix. Candidate directions are ranked by
+normalized fourth-order contrast on the training data only.
+
+The mathematical recovery steps reproduce the local project's
+`spectral_recovery(..., native_set=True)` path that was inspected in the first
+session. This standalone implementation has its own seeded PRNG and eigensolver;
+it is not an invocation of the Python implementation. It uses a classical
+distinct-index Kikuchi operator, not the full bosonic repeated-index Hamiltonian
+or a quantum circuit.
+
+The learner receives no planted item labels, planted weights, or validation
+data. One direction is requested. The known group size six is used only to
+score the six largest absolute recovered weights. Direction recovery is squared
+cosine, invariant under a global sign; 1 means perfect alignment. An independent
+uniform random direction has expected squared alignment 1/12.
+
+Validation contrast is the mean normalized distinct fourth-order polynomial
+along the training-derived direction, evaluated on separate validation baskets.
+Its population value agrees with the projected joint cumulant in this specific
+model because lower distinct moments vanish. It is not a purchase probability.
+For the predetermined first replicate of each condition, 199 independent-column
+permutations of validation rows provide a two-sided test. The fitted direction
+is held fixed. The p-value is `(1 + exceedances)/(199 + 1)`, whose minimum is
+0.005. Null controls assess reproducibility; the algorithm always returns a
+direction and does not itself infer whether a signal exists.
+
+Training seeds are `20261109 + 100*r` for planted data and that value plus
+100000 for null data, with r from 0 to 23. Validation, eigensolver, and
+permutation seeds use offsets +1, +2, and +3. All random numbers use the explicit
+Mulberry32 generator in `numerical_core.cjs`.
+
+## Scope of the conclusion
+
+The tensor methods recover this deliberately planted higher-order group; level
+2 performs better than level 4 in this experiment. The experiment does not
+establish a larger-lift advantage, a quantum speedup, performance on real retail
+data, or improved basket recommendations. It does not test overlapping groups,
+unequal popularity, sparse baskets, or an unknown group count. The group labels
+are illustrative product names, not inferred causal shopping motivations.
+
+Background: M. B. Hastings, *Classical and Quantum Algorithms for Tensor Principal
+Component Analysis*, https://arxiv.org/abs/1907.12724. This package uses the
+distinct-index Kikuchi variant described above; the paper's runtime guarantees
+are not transferred to this constructed basket distribution.

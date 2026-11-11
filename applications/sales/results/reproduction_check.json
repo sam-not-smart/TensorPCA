@@ -1,0 +1,7 @@
+{
+  "max_abs_error_against_12_original_reported_means": 0,
+  "tolerance": 1e-8,
+  "planted_permutation_p": 0.005,
+  "null_permutation_p": 0.96,
+  "passed": true
+}
