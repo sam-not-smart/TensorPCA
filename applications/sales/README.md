@@ -15,6 +15,26 @@ retrieved copies of the lost temporary files.
 
 ## Quick start
 
+### Interactive walkthrough
+
+Open [synthetic_sales_walkthrough.ipynb](synthetic_sales_walkthrough.ipynb) in
+VS Code or Jupyter with a Python kernel. Install dependencies from the repository
+root with `python -m pip install -r applications/sales/requirements-notebook.txt`,
+and ensure Node.js 20+ is on PATH. Use **Restart Kernel and Run All**.
+
+The notebook imports all four example CSVs and recomputes the first replicate
+for both conditions. Each code cell has an explanation, with data/tensor summaries,
+both lift levels, complete printed spectra, recovery plots, and held-out tests.
+It calls the existing shared solver through `notebook_bridge.cjs` and checks its
+explicit Python calculations against that solver and the recorded results.
+Outputs are saved for browsing without execution. No dataset is regenerated or
+overwritten; the final 24-seed comparison loads the existing benchmark.
+
+For a fresh-kernel automated check, run `python scripts/check_notebook.py` from
+the repository root. GitHub Actions runs this check too.
+
+### Complete benchmark
+
 The experiment requires Node.js and no npm packages. It was reproduced using
 Node.js v24.22.1. From this directory:
 

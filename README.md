@@ -41,6 +41,23 @@ global sign. The API deliberately receives no product labels or planted target.
 
 ## Run the sales application
 
+For a guided, executable explanation, open the
+[synthetic sales notebook](applications/sales/synthetic_sales_walkthrough.ipynb).
+It includes saved outputs and walks through both planted and control data,
+preprocessing, cumulant estimation, Kikuchi lifts, full eigenspectra, decoding,
+and held-out validation. The shared JavaScript solver is called from a Python
+kernel; Node.js must be on PATH.
+
+```sh
+python -m pip install -r applications/sales/requirements-notebook.txt
+```
+
+Open the notebook in VS Code/Jupyter and select **Restart Kernel and Run All**.
+It reads the saved CSVs without regenerating or overwriting them. The final
+multi-seed plot loads the recorded benchmark and is labelled accordingly.
+
+To run the full original benchmark instead:
+
 ```sh
 node applications/sales/test_numerics.cjs
 node applications/sales/run_experiment.cjs
@@ -74,10 +91,10 @@ for the recorded findings.
 | `docs/adding-applications.md` | Convention for introducing another application |
 | `.github/workflows/tests.yml` | Core tests and full sales reproduction on GitHub |
 
-The present implementation is dependency-free JavaScript because it preserves
-the validated sales experiment. Python is currently used only for plotting and
-report generation. Further language bindings can be added without changing the
-experiment protocol.
+The shared solver is dependency-free JavaScript because it preserves the validated
+sales experiment. Python provides the notebook walkthrough, explicit numerical
+cross-checks, plots, and reports. Further language bindings can be added without
+changing the experiment protocol.
 
 ## Current scope
 

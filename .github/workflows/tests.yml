@@ -26,3 +26,7 @@ jobs:
         run: node applications/sales/test_numerics.cjs
       - name: Reproduce the sales experiment
         run: node applications/sales/run_experiment.cjs
+      - name: Install notebook dependencies
+        run: python -m pip install -r applications/sales/requirements-notebook.txt
+      - name: Execute the sales notebook in a fresh kernel
+        run: python scripts/check_notebook.py

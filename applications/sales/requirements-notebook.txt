@@ -1,0 +1,6 @@
+# Python kernel and headless notebook execution; Node.js 20+ is also required.
+-r requirements.txt
+pandas>=2.2
+ipykernel>=6.29
+nbformat>=5.10
+nbclient>=0.10
